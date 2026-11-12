@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0a1113" />
+<meta name="description" content="ARK: Survival Evolved — Primal Isle. A 3D survival game for phones and tablets." />
+<title>ARK: Survival Evolved — Primal Isle</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230b1517'/%3E%3Cpath d='M14 50 32 12l18 38h-9l-3-7H26l-3 7z' fill='%23e9a63e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<main id="game">
+  <canvas id="scene" aria-label="Mundo 3D de la isla"></canvas>
+  <div id="vignette"></div>
+  <div id="damage-flash"></div>
+
+  <div id="hud" class="hidden">
+    <section id="vitals" aria-label="Estado del superviviente">
+      <div class="vitals-head">
+        <span class="level-chip">Nv <b id="level">1</b></span>
+        <span id="xp-text">0 / 100 XP</span>
+      </div>
+      <div class="xp-track"><div id="xp-fill"></div></div>
+      <div class="stat" data-stat="hp">
+        <span class="stat-ico">♥</span>
+        <div class="stat-track"><div class="stat-fill" id="hp-fill"></div></div>
+        <span class="stat-num" id="hp-num">100</span>
+      </div>
+      <div class="stat" data-stat="stamina">
+        <span class="stat-ico">⚡</span>
+        <div class="stat-track"><div class="stat-fill" id="stamina-fill"></div></div>
+        <span class="stat-num" id="stamina-num">100</span>
+      </div>
+      <div class="stat" data-stat="food">
+        <span class="stat-ico">🍖</span>
+        <div class="stat-track"><div class="stat-fill" id="food-fill"></div></div>
+        <span class="stat-num" id="food-num">100</span>
+      </div>
+      <div class="stat" data-stat="water">
+        <span class="stat-ico">💧</span>
+        <div class="stat-track"><div class="stat-fill" id="water-fill"></div></div>
+        <span class="stat-num" id="water-num">100</span>
+      </div>
+      <div class="stat" data-stat="weight">
+        <span class="stat-ico">⚖</span>
+        <div class="stat-track"><div class="stat-fill" id="weight-fill"></div></div>
+        <span class="stat-num" id="weight-num">0/100</span>
+      </div>
+    </section>
+
+    <section id="top-right">
+      <div id="top-buttons">
+        <button class="icon-btn" id="btn-inventory" aria-label="Inventario y fabricación"><span>▦</span><small>INV</small></button>
+        <button class="icon-btn" id="btn-journal" aria-label="Diario de supervivencia"><span>✧</span><small>DIARIO</small></button>
+        <button class="icon-btn" id="btn-menu" aria-label="Menú"><span>☰</span><small>MENÚ</small></button>
+      </div>
+      <div id="map-shell">
+        <canvas id="minimap" width="240" height="240" aria-label="Mapa de la isla"></canvas>
+        <div id="compass">N</div>
+        <div id="clock">Día 1 · 07:30</div>
+        <div id="weather">☀ Despejado</div>
+      </div>
+    </section>
+
+    <section id="quest-card">
+      <div class="quest-kicker">OBJETIVO</div>
+      <div id="quest-title">—</div>
+      <div id="quest-hint">—</div>
+    </section>
+
+    <div id="target-bar" class="hidden">
+      <div id="target-name">Raptor</div>
+      <div class="target-track"><div id="target-fill"></div></div>
+    </div>
+
+    <div id="prompt" class="hidden"><span class="key" id="prompt-key">E</span><span id="prompt-text">Interactuar</span></div>
+
+    <div id="hotbar" aria-label="Barra rápida"></div>
+
+    <div id="joystick">
+      <div class="joy-ring"></div>
+      <div id="stick"></div>
+      <div class="joy-label">MOVER</div>
+    </div>
+
+    <div id="actions">
+      <button id="btn-interact" class="round-btn small" aria-label="Interactuar"><span id="interact-ico">✋</span></button>
+      <button id="btn-jump" class="round-btn small" aria-label="Saltar"><span>⤒</span></button>
+      <button id="btn-attack" class="round-btn attack" aria-label="Atacar o recolectar"><span>⚔</span></button>
+    </div>
+
+    <div id="floating-layer"></div>
+    <div id="toasts" aria-live="polite"></div>
+    <div id="hint-strip">Arrastra a la derecha para mirar · Palo izquierdo para moverte</div>
+  </div>
+
+  <section id="start-screen">
+    <div class="start-glow"></div>
+    <div class="start-content">
+      <div class="logo-wrap">
+        <div class="logo-small">SURVIVAL EVOLVED</div>
+        <h1 class="logo">ARK<span>:</span></h1>
+        <div class="logo-sub">PRIMAL ISLE</div>
+      </div>
+      <p class="tagline">Despierta en una isla imposible. Recolecta, fabrica, domestica dinosaurios y sobrevive a la noche.</p>
+      <div class="start-row">
+        <button id="btn-start" class="primary-btn" aria-label="Start">COMENZAR</button>
+        <div class="start-meta">
+          <span>◈ Mundo procedural</span>
+          <span>◈ Guardado automático</span>
+        </div>
+      </div>
+      <div class="controls-preview">
+        <div><b>◐</b> Palo izquierdo · moverte</div>
+        <div><b>⌖</b> Arrastra · mirar</div>
+        <div><b>⚔</b> Atacar árboles, rocas y bestias</div>
+      </div>
+      <p class="save-note hidden" id="save-note">Partida guardada detectada · Continuarás donde lo dejaste</p>
+    </div>
+    <div class="start-footer">Inspirado en ARK: Survival Evolved · Hecho para móvil y tablet · Toca para sobrevivir</div>
+  </section>
+
+  <section id="inventory-panel" class="overlay hidden" aria-label="Inventario y fabricación">
+    <div class="panel wide">
+      <header class="panel-head">
+        <div>
+          <h2>INVENTARIO</h2>
+          <p>Peso <b id="inv-weight">0 / 100</b> · Nivel <b id="inv-level">1</b></p>
+        </div>
+        <button class="close-btn" data-close="inventory-panel" aria-label="Cerrar">✕</button>
+      </header>
+      <div class="inv-grid-wrap">
+        <div class="inv-column">
+          <h3>MOCHILA <span id="inv-count">0 objetos</span></h3>
+          <div id="inv-grid" class="inv-grid"></div>
+          <div id="item-detail" class="item-detail">Toca un objeto para usarlo o equiparlo.</div>
+        </div>
+        <div class="craft-column">
+          <h3>FABRICACIÓN <span id="craft-hint">Nivel 1</span></h3>
+          <div id="craft-list" class="craft-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="journal-panel" class="overlay hidden" aria-label="Diario de supervivencia">
+    <div class="panel">
+      <header class="panel-head">
+        <div>
+          <h2>DIARIO</h2>
+          <p id="journal-sub">Sobrevive un día más en la isla</p>
+        </div>
+        <button class="close-btn" data-close="journal-panel" aria-label="Cerrar">✕</button>
+      </header>
+      <div id="journal-list" class="journal-list"></div>
+      <div class="journal-stats" id="journal-stats"></div>
+    </div>
+  </section>
+
+  <section id="menu-panel" class="overlay hidden" aria-label="Menú">
+    <div class="panel small-panel">
+      <header class="panel-head">
+        <div><h2>PAUSA</h2><p>Primal Isle · Supervivencia</p></div>
+        <button class="close-btn" data-close="menu-panel" aria-label="Cerrar">✕</button>
+      </header>
+      <div class="menu-buttons">
+        <button id="btn-resume" class="menu-btn">Continuar</button>
+        <button id="btn-save" class="menu-btn ghost">Guardar ahora</button>
+        <button id="btn-sound" class="menu-btn ghost">Sonido: activado</button>
+        <button id="btn-help" class="menu-btn ghost">Cómo jugar</button>
+        <button id="btn-new" class="menu-btn danger">Nueva partida</button>
+      </div>
+      <div id="help-block" class="help-block hidden">
+        <p><b>Moverte:</b> palo izquierdo / WASD. <b>Mirar:</b> arrastra en el lado derecho / ratón.</p>
+        <p><b>Recolectar:</b> acércate a un árbol, roca o arbusto y pulsa ⚔. El pico da más paja y pedernal; el hacha, más madera y piedra.</p>
+        <p><b>Fabricar:</b> abre INV, reúne los materiales y pulsa FABRICAR. Equipa herramientas desde la mochila.</p>
+        <p><b>Domesticar:</b> golpea dodos o parasaurios hasta dejarlos débiles… o mejor, aliméntalos con bayas usando ✋ cuando estén tranquilos.</p>
+        <p><b>Sobrevivir:</b> bebe en la orilla, cocina carne en la hoguera y refúgiate del raptor por la noche.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="death-screen" class="overlay hidden">
+    <div class="death-inner">
+      <div class="death-kicker">PRIMAL ISLE</div>
+      <h2>HAS MUERTO</h2>
+      <p id="death-cause">Un raptor te encontró al anochecer.</p>
+      <button id="btn-respawn" class="primary-btn">REAPARECER</button>
+      <p class="death-note">Conservas tu mochila. El mundo sigue girando.</p>
+    </div>
+  </section>
+
+  <div id="levelup-banner" class="hidden"><small>NIVEL</small><b id="levelup-num">2</b><span>Has mejorado</span></div>
+  <div id="loading"><div class="loader-hex"></div><span>GENERANDO LA ISLA</span></div>
+</main>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/" } }
+</script>
+<script type="module" src="./src/game.js"></script>
+</body>
+</html>
