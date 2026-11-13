@@ -86,6 +86,7 @@ class Game {
     this.look = { active: false, pointerId: null, lastX: 0, lastY: 0, startTime: 0, moved: 0 };
     this.keys = {};
     this.attackHeld = false;
+    this.sprinting = false;
     this.attackCooldown = 0;
     this.pendingHit = -1;
     this.targetDino = null;
@@ -1410,6 +1411,7 @@ class Game {
     const input = this.moveInput();
     const sprintKeys = this.keys.ShiftLeft || this.keys.ShiftRight;
     const sprint = (input.mag > 0.92 || sprintKeys) && this.stats.stamina > 2 && input.mag > 0.08;
+    this.sprinting = sprint;
 
     if (this.mountedDino) {
       const dino = this.mountedDino;
@@ -1489,9 +1491,8 @@ class Game {
 
   updateSurvival(dt) {
     const s = this.stats;
-    const sprinting = this.player && this.attackHeld;
-    s.food = Math.max(0, s.food - dt * (0.13 + (sprinting ? 0.06 : 0)));
-    s.water = Math.max(0, s.water - dt * (0.19 + (sprinting ? 0.05 : 0)));
+    s.food = Math.max(0, s.food - dt * (0.13 + (this.sprinting ? 0.06 : 0)));
+    s.water = Math.max(0, s.water - dt * (0.19 + (this.sprinting ? 0.05 : 0)));
     if (s.food <= 0) s.hp -= dt * 0.8;
     if (s.water <= 0) s.hp -= dt * 1.1;
     if (s.food > 25 && s.water > 25 && this.invuln <= 0) s.hp = Math.min(s.hpMax, s.hp + dt * 0.7);
