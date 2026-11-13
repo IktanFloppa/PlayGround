@@ -899,6 +899,7 @@ class Game {
       this.audio.hitWood();
       this.addXP(4);
     }
+    this.checkQuests();
   }
 
   dinoAttack(dino) {
@@ -1175,6 +1176,12 @@ class Game {
   save(manual = false) {
     if (!this.started || this.state === 'menu') return;
     try {
+      let pos = this.mountedDino
+        ? [this.mountedDino.position.x + 2, Math.max(terrainHeight(this.mountedDino.position.x + 2, this.mountedDino.position.z), 0.3), this.mountedDino.position.z]
+        : [this.player.pos.x, this.player.pos.y, this.player.pos.z];
+      if (!pos.every(Number.isFinite) || terrainHeight(pos[0], pos[2]) < 0.2) {
+        pos = this.spawnPoint.toArray();
+      }
       const data = {
         v: 1,
         inventory: this.inventory,
@@ -1188,9 +1195,7 @@ class Game {
         dayTime: this.dayTime,
         day: this.day,
         quests: this.quests.filter((q) => q.done).map((q) => q.id),
-        pos: this.mountedDino
-          ? [this.mountedDino.position.x + 2, Math.max(terrainHeight(this.mountedDino.position.x + 2, this.mountedDino.position.z), 0.3), this.mountedDino.position.z]
-          : [this.player.pos.x, this.player.pos.y, this.player.pos.z],
+        pos,
         tames: this.dinos.filter((d) => d.tamed && !d.dead).map((d) => ({
           species: d.species, pos: [d.position.x, d.position.y, d.position.z],
         })),
